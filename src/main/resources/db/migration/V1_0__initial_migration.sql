@@ -1,0 +1,24 @@
+CREATE TABLE user
+(
+    id INTEGER PRIMARY KEY AUTO_INCREMENT,
+    name VARCHAR(128) NOT NULL UNIQUE
+);
+
+CREATE TABLE file
+(
+    id INTEGER PRIMARY KEY AUTO_INCREMENT,
+    name VARCHAR(256) NOT NULL,
+    path VARCHAR(256) NOT NULL,
+    UNIQUE(name,path)
+);
+
+CREATE TABLE event
+(
+    id INTEGER PRIMARY KEY AUTO_INCREMENT,
+    type VARCHAR(12) NOT NULL,
+    user_id INTEGER NOT NULL,
+    file_id INTEGER NOT NULL,
+    UNIQUE (type, user_id, file_id),
+    FOREIGN KEY (user_id) REFERENCES user(id),
+    FOREIGN KEY (file_id) REFERENCES file(id)
+);
