@@ -1,20 +1,28 @@
 package com.shohhet.servletapp.model.entity;
 
 import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
 @Data
 @NoArgsConstructor
+@AllArgsConstructor
+@Builder
 @Entity
 @Table(name = "event")
 public class EventEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "id")
     Integer id;
-    EventType type;
+
     @ManyToOne(targetEntity = UserEntity.class)
+    @JoinColumn(name = "user_id")
     Integer userId;
+
     @ManyToOne(targetEntity = FileEntity.class)
+    @JoinColumn(name = "file_id")
     Integer fileId;
 }
