@@ -20,6 +20,6 @@ public class UserEntity {
     private Integer id;
     @Column(name = "name")
     private String name;
-    @OneToMany(mappedBy = "userId", fetch = FetchType.LAZY)
+    @OneToMany(mappedBy = "user", fetch = FetchType.LAZY)
     private List<EventEntity> events;
 }

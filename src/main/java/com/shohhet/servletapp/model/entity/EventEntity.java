@@ -16,13 +16,13 @@ public class EventEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id")
-    Integer id;
+    private Integer id;
 
     @ManyToOne(targetEntity = UserEntity.class)
     @JoinColumn(name = "user_id")
-    Integer userId;
+    private UserEntity user;
 
     @ManyToOne(targetEntity = FileEntity.class)
     @JoinColumn(name = "file_id")
-    Integer fileId;
+    private FileEntity file;
 }

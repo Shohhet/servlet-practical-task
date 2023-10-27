@@ -1,8 +1,7 @@
 package com.shohhet.servletapp.service;
 
-import com.shohhet.servletapp.model.entity.UserEntity;
 import com.shohhet.servletapp.model.repository.impl.UserRepositoryImpl;
-import com.shohhet.servletapp.service.dto.UserDto;
+import com.shohhet.servletapp.service.dto.userDto.UserDto;
 import com.shohhet.servletapp.service.mapper.UserToDtoMapper;
 import jakarta.transaction.Transactional;
 import lombok.AllArgsConstructor;
@@ -21,4 +20,5 @@ public class UserService {
                 .map(userToDtoMapper::mapFrom)
                 .findFirst();
     }
+
 }

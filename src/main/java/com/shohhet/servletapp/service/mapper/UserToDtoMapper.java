@@ -1,7 +1,7 @@
 package com.shohhet.servletapp.service.mapper;
 
 import com.shohhet.servletapp.model.entity.UserEntity;
-import com.shohhet.servletapp.service.dto.UserDto;
+import com.shohhet.servletapp.service.dto.userDto.UserDto;
 import lombok.RequiredArgsConstructor;
 
 @RequiredArgsConstructor

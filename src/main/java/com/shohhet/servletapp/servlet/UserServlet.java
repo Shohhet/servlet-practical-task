@@ -8,16 +8,17 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.shohhet.servletapp.service.UserService;
 import jakarta.servlet.ServletConfig;
+import jakarta.servlet.ServletException;
 import jakarta.servlet.http.*;
 import jakarta.servlet.annotation.*;
 
-@WebServlet(urlPatterns = "/users/*")
+@WebServlet(urlPatterns = "/api/users/*")
 public class UserServlet extends HttpServlet {
-    private String message;
     private UserService userService;
     private Gson gson;
 
-    public void init(ServletConfig config) {
+    public void init(ServletConfig config) throws ServletException {
+        super.init(config);
         userService = (UserService) config.getServletContext()
                 .getAttribute(UserService.class.getSimpleName());
         gson = new GsonBuilder().setPrettyPrinting().create();
@@ -37,7 +38,13 @@ public class UserServlet extends HttpServlet {
                         response.setContentType("application/json; charset=UTF-8");
                         out.write(gson.toJson(user));
                     },
-                    () -> response.setStatus(404));
+                    () -> {
+                        try {
+                            response.sendError(HttpServletResponse.SC_NOT_FOUND);
+                        } catch (IOException e) {
+                            throw new RuntimeException(e);
+                        }
+                    });
         }
     }
 
