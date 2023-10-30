@@ -7,7 +7,7 @@ import com.shohhet.servletapp.model.repository.impl.FileRepositoryImpl;
 import com.shohhet.servletapp.model.repository.impl.UserRepositoryImpl;
 import com.shohhet.servletapp.service.FileService;
 import com.shohhet.servletapp.service.UserService;
-import com.shohhet.servletapp.service.mapper.DtoToFileMapper;
+import com.shohhet.servletapp.service.mapper.UploadDtoToFileMapper;
 import com.shohhet.servletapp.service.mapper.EventToDtoMapper;
 import com.shohhet.servletapp.service.mapper.FileToDtoMapper;
 import com.shohhet.servletapp.service.mapper.UserToDtoMapper;
@@ -63,7 +63,7 @@ public class ContextListener implements ServletContextListener {
 
         var fileRepository = new FileRepositoryImpl(currentSession, FileEntity.class);
         var fileToDtoMapper = new FileToDtoMapper();
-        var dtoToFileMapper = new DtoToFileMapper();
+        var dtoToFileMapper = new UploadDtoToFileMapper();
         var fileService = new ByteBuddy()
                 .subclass(FileService.class)
                 .method(ElementMatchers.any())
@@ -71,7 +71,7 @@ public class ContextListener implements ServletContextListener {
                 .make()
                 .load(ContextListener.class.getClassLoader())
                 .getLoaded()
-                .getDeclaredConstructor(FileRepositoryImpl.class, FileToDtoMapper.class, DtoToFileMapper.class)
+                .getDeclaredConstructor(FileRepositoryImpl.class, FileToDtoMapper.class, UploadDtoToFileMapper.class)
                 .newInstance(fileRepository, fileToDtoMapper, dtoToFileMapper);
 
         servletContext.setAttribute(UserService.class.getSimpleName(), userService);

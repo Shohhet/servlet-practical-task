@@ -24,19 +24,20 @@ public class UserServlet extends HttpServlet {
         gson = new GsonBuilder().setPrettyPrinting().create();
     }
 
-    public void doGet(HttpServletRequest request, HttpServletResponse response) throws IOException {
+    public void doPost(HttpServletRequest request, HttpServletResponse response) throws IOException {
         String path = request.getPathInfo();
-        if (Pattern.matches("/\\d+", path)) {
-            Matcher matcher = Pattern.compile("\\d+").matcher(path);
-            matcher.find();
-            Integer id = Integer.valueOf(matcher.group());
-            var out = response.getWriter();
+        if (Pattern.matches("^/\\d+/files/", path)) {
+            String[] pathParts = path.split("/");
+            Integer id = Integer.valueOf(pathParts[1]);
 
             userService.get(id).ifPresentOrElse(
                     (user) -> {
-                        response.setStatus(200);
-                        response.setContentType("application/json; charset=UTF-8");
-                        out.write(gson.toJson(user));
+                        request.setAttribute("userId", id);
+                        try {
+                            request.getRequestDispatcher("/files/*").forward(request, response);
+                        } catch (ServletException | IOException e) {
+                            response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+                        }
                     },
                     () -> {
                         try {

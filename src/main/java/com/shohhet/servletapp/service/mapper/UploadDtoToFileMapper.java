@@ -1,14 +1,13 @@
 package com.shohhet.servletapp.service.mapper;
 
 import com.shohhet.servletapp.model.entity.FileEntity;
-import com.shohhet.servletapp.service.dto.fileDto.FileDto;
+import com.shohhet.servletapp.service.dto.fileDto.UploadFileDto;
 
-public class DtoToFileMapper implements Mapper<FileDto, FileEntity> {
+public class UploadDtoToFileMapper implements Mapper<UploadFileDto, FileEntity> {
     @Override
-    public FileEntity mapFrom(FileDto dto) {
+    public FileEntity mapFrom(UploadFileDto dto) {
 
         return FileEntity.builder()
-                .id(dto.id())
                 .name(dto.name())
                 .path(dto.path())
                 .build();
