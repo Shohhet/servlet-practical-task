@@ -4,5 +4,5 @@ import jakarta.servlet.http.Part;
 
 import java.io.InputStream;
 
-public record UploadFileDto(String name, String path, InputStream fileInputStream) {
+public record UploadFileDto(String name, String path, InputStream fileInputStream, Integer userId) {
 }

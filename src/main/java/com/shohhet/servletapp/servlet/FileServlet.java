@@ -17,16 +17,19 @@ import jakarta.servlet.http.Part;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.PrintWriter;
 import java.util.List;
 
-@WebServlet(urlPatterns = "/api/users/*/files/*")
-@MultipartConfig(fileSizeThreshold = 1024 * 1024 * 10,
-        maxFileSize = 1024 * 1024 * 10,
+import static com.shohhet.servletapp.utils.ServletUtils.isInteger;
+
+@WebServlet(urlPatterns = "/api/files/*")
+@MultipartConfig(maxFileSize = 1024 * 1024 * 10,
         maxRequestSize = 1024 * 1024 * 100)
 public class FileServlet extends HttpServlet {
     private FileService fileService;
     private Gson gson;
     private static final String UPLOAD_DIR = "uploads";
+    private static final String USER_ID_HEADER = "userId";
 
     @Override
     public void init(ServletConfig config) throws ServletException {
@@ -63,26 +66,35 @@ public class FileServlet extends HttpServlet {
 
     @Override
     protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-        String appPath = req.getServletContext().getRealPath("");
-        String uploadDirectory = appPath + UPLOAD_DIR;
-        var filePart = req.getPart("filename");
-        var writer = resp.getWriter();
-        fileService.add(new UploadFileDto(
-                filePart.getSubmittedFileName(),
-                uploadDirectory,
-                filePart.getInputStream()
-                )
-        ).ifPresentOrElse(
-                fileDto -> {
-                    resp.setStatus(HttpServletResponse.SC_CREATED);
-                    resp.setContentType("application/json; charset=UTF-8");
-                    writer.write(gson.toJson(fileDto));
-                },
-                () -> {
-                    resp.setStatus(HttpServletResponse.SC_NOT_FOUND);
-                    writer.write("File already exist.");
-                }
-        );
+        String stringUserId = req.getHeader(USER_ID_HEADER);
+        PrintWriter writer = resp.getWriter();
+        if (isInteger(stringUserId)) {
+            String appPath = req.getServletContext().getRealPath("");
+            String uploadDirectory = appPath + UPLOAD_DIR + File.separator + stringUserId;
+            Part filePart = req.getPart("filename");
+            int userId = Integer.parseInt(stringUserId);
+            fileService.add(new UploadFileDto(
+                            filePart.getSubmittedFileName(),
+                            uploadDirectory,
+                            filePart.getInputStream(),
+                            userId
+                    )
+            ).ifPresentOrElse(
+                    fileDto -> {
+                        resp.setStatus(HttpServletResponse.SC_CREATED);
+                        resp.setContentType("application/json; charset=UTF-8");
+                        writer.write(gson.toJson(fileDto));
+                    },
+                    () -> {
+                        resp.setStatus(HttpServletResponse.SC_NOT_FOUND);
+                        writer.write("File already exist.");
+                    }
+            );
+        } else {
+            resp.setStatus(HttpServletResponse.SC_NOT_FOUND);
+            writer.write("User id header missed or have wrong value");
+        }
+
 
 
     }
@@ -98,12 +110,5 @@ public class FileServlet extends HttpServlet {
         return "";
     }
 
-    private boolean isInteger(String maybeInteger) {
-        try {
-            Integer.parseInt(maybeInteger);
-            return true;
-        } catch (NumberFormatException e) {
-            return false;
-        }
-    }
+
 }

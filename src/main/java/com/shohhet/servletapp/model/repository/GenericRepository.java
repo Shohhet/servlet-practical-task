@@ -8,6 +8,6 @@ public interface GenericRepository<E, ID> {
     Optional<E> getById(ID id);
     List<E> getAll();
     void update(E entity);
-    void delete(ID id);
+    void delete(E entity);
 
 }

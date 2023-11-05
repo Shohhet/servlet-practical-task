@@ -3,14 +3,13 @@ package com.shohhet.servletapp.servlet;
 import com.shohhet.servletapp.model.entity.EventEntity;
 import com.shohhet.servletapp.model.entity.FileEntity;
 import com.shohhet.servletapp.model.entity.UserEntity;
+import com.shohhet.servletapp.model.repository.impl.EventRepositoryImpl;
 import com.shohhet.servletapp.model.repository.impl.FileRepositoryImpl;
 import com.shohhet.servletapp.model.repository.impl.UserRepositoryImpl;
+import com.shohhet.servletapp.service.EventService;
 import com.shohhet.servletapp.service.FileService;
 import com.shohhet.servletapp.service.UserService;
-import com.shohhet.servletapp.service.mapper.UploadDtoToFileMapper;
-import com.shohhet.servletapp.service.mapper.EventToDtoMapper;
-import com.shohhet.servletapp.service.mapper.FileToDtoMapper;
-import com.shohhet.servletapp.service.mapper.UserToDtoMapper;
+import com.shohhet.servletapp.service.mapper.*;
 import com.shohhet.servletapp.utils.TransactionInterceptor;
 import jakarta.servlet.ServletContextEvent;
 import jakarta.servlet.ServletContextListener;
@@ -47,10 +46,14 @@ public class ContextListener implements ServletContextListener {
                 (proxy, method, methodArgs) -> method.invoke(sessionFactory.getCurrentSession(), methodArgs));
 
         var transactionInterceptor = new TransactionInterceptor(sessionFactory);
-
         var userRepository = new UserRepositoryImpl(currentSession, UserEntity.class);
+        var fileRepository = new FileRepositoryImpl(currentSession, FileEntity.class);
+        var eventRepository = new EventRepositoryImpl(currentSession, EventEntity.class);
+
+
         var eventToDtoMapper = new EventToDtoMapper();
         var userToDtoMapper = new UserToDtoMapper(eventToDtoMapper);
+        var dtoToUserMapper = new DtoToUserMapper();
         var userService = new ByteBuddy()
                 .subclass(UserService.class)
                 .method(ElementMatchers.any())
@@ -58,10 +61,10 @@ public class ContextListener implements ServletContextListener {
                 .make()
                 .load(ContextListener.class.getClassLoader())
                 .getLoaded()
-                .getDeclaredConstructor(UserRepositoryImpl.class, UserToDtoMapper.class)
-                .newInstance(userRepository, userToDtoMapper);
+                .getDeclaredConstructor(UserRepositoryImpl.class, UserToDtoMapper.class, DtoToUserMapper.class)
+                .newInstance(userRepository, userToDtoMapper, dtoToUserMapper);
 
-        var fileRepository = new FileRepositoryImpl(currentSession, FileEntity.class);
+
         var fileToDtoMapper = new FileToDtoMapper();
         var dtoToFileMapper = new UploadDtoToFileMapper();
         var fileService = new ByteBuddy()
@@ -71,8 +74,8 @@ public class ContextListener implements ServletContextListener {
                 .make()
                 .load(ContextListener.class.getClassLoader())
                 .getLoaded()
-                .getDeclaredConstructor(FileRepositoryImpl.class, FileToDtoMapper.class, UploadDtoToFileMapper.class)
-                .newInstance(fileRepository, fileToDtoMapper, dtoToFileMapper);
+                .getDeclaredConstructor(FileRepositoryImpl.class, UserRepositoryImpl.class, EventRepositoryImpl.class, FileToDtoMapper.class, UploadDtoToFileMapper.class)
+                .newInstance(fileRepository, userRepository, eventRepository, fileToDtoMapper, dtoToFileMapper);
 
         servletContext.setAttribute(UserService.class.getSimpleName(), userService);
         servletContext.setAttribute(FileService.class.getSimpleName(), fileService);

@@ -1,6 +1,10 @@
 package com.shohhet.servletapp.service;
 
+import com.shohhet.servletapp.model.entity.EventEntity;
+import com.shohhet.servletapp.model.entity.UserEntity;
+import com.shohhet.servletapp.model.repository.impl.EventRepositoryImpl;
 import com.shohhet.servletapp.model.repository.impl.FileRepositoryImpl;
+import com.shohhet.servletapp.model.repository.impl.UserRepositoryImpl;
 import com.shohhet.servletapp.service.dto.fileDto.FileDto;
 import com.shohhet.servletapp.service.dto.fileDto.UploadFileDto;
 import com.shohhet.servletapp.service.mapper.UploadDtoToFileMapper;
@@ -19,22 +23,35 @@ import java.util.Optional;
 @RequiredArgsConstructor
 public class FileService {
     private final FileRepositoryImpl fileRepository;
+    private final UserRepositoryImpl userRepository;
+    private final EventRepositoryImpl eventRepository;
     private final FileToDtoMapper fileToDtoMapper;
     private final UploadDtoToFileMapper dtoToFileMapper;
 
     @Transactional
-    public Optional<FileDto> add(UploadFileDto fileDto) throws IOException {
-        var maybeFile = fileRepository.getAll().stream()
-                .filter(fileEntity ->
-                        fileEntity.getName().equals(fileDto.name()) &&
-                        fileEntity.getPath().equals(fileDto.path()))
-                .findFirst();
-        if (maybeFile.isEmpty()) {
-            var file = fileRepository.add(dtoToFileMapper.mapFrom(fileDto));
-            upload(fileDto);
-            return Optional.of(fileToDtoMapper.mapFrom(file));
+    public Optional<FileDto> add(UploadFileDto uploadFileDto) throws IOException {
+        var maybeUser = userRepository.getById(uploadFileDto.userId());
+        if (maybeUser.isPresent()) {
+            var maybeFile = fileRepository.getAll().stream()
+                    .filter(fileEntity ->
+                            fileEntity.getName().equals(uploadFileDto.name()) &&
+                            fileEntity.getPath().equals(uploadFileDto.path()))
+                    .findFirst();
+            if (maybeFile.isEmpty()) {
+                var file = fileRepository.add(dtoToFileMapper.mapFrom(uploadFileDto));
+                upload(uploadFileDto);
+                var event = EventEntity.builder()
+                        .user(maybeUser.get())
+                        .file(file)
+                        .build();
+                eventRepository.add(event);
+                return Optional.of(fileToDtoMapper.mapFrom(file));
+            } else {
+                return Optional.empty();
+            }
+        } else {
+            return Optional.empty();
         }
-        return Optional.empty();
     }
 
     @Transactional

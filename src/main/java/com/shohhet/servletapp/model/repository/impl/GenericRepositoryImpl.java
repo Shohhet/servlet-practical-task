@@ -37,7 +37,7 @@ public class GenericRepositoryImpl<E, ID> implements GenericRepository<E, ID> {
     }
 
     @Override
-    public void delete(ID id) {
-        session.remove(id);
+    public void delete(E entity) {
+        session.remove(entity);
     }
 }
