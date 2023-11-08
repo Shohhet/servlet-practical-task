@@ -5,7 +5,7 @@ import com.shohhet.servletapp.service.dto.eventDto.EventDto;
 
 public class EventToDtoMapper implements Mapper<EventEntity, EventDto>{
     @Override
-    public EventDto mapFrom(EventEntity from) {
-        return null;
+    public EventDto mapFrom(EventEntity entity) {
+        return new EventDto(entity.getId(), entity.getUser(), entity.getFile());
     }
 }

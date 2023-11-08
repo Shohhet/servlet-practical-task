@@ -1,13 +1,11 @@
 package com.shohhet.servletapp.model.entity;
 
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 import java.util.List;
 @Data
+@EqualsAndHashCode(exclude = "events")
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
@@ -20,6 +18,6 @@ public class UserEntity {
     private Integer id;
     @Column(name = "name")
     private String name;
-    @OneToMany(mappedBy = "user", fetch = FetchType.LAZY)
-    private List<EventEntity> events;
+    @OneToMany(mappedBy = "user", fetch = FetchType.LAZY, cascade = CascadeType.REMOVE)
+    private transient List<EventEntity> events;
 }

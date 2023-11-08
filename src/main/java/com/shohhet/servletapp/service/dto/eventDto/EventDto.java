@@ -1,6 +1,6 @@
 package com.shohhet.servletapp.service.dto.eventDto;
 
-import com.shohhet.servletapp.service.dto.fileDto.FileDto;
-import com.shohhet.servletapp.service.dto.userDto.UserDto;
+import com.shohhet.servletapp.model.entity.FileEntity;
+import com.shohhet.servletapp.model.entity.UserEntity;
 
-public record EventDto(Integer id, UserDto user, FileDto file) { }
+public record EventDto(Integer id, UserEntity user, FileEntity file) { }

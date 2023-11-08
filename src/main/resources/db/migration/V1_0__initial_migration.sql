@@ -15,10 +15,9 @@ CREATE TABLE file
 CREATE TABLE event
 (
     id INTEGER PRIMARY KEY AUTO_INCREMENT,
-    type VARCHAR(12) NOT NULL,
     user_id INTEGER NOT NULL,
     file_id INTEGER NOT NULL,
-    UNIQUE (type, user_id, file_id),
+    UNIQUE (user_id, file_id),
     FOREIGN KEY (user_id) REFERENCES user(id),
     FOREIGN KEY (file_id) REFERENCES file(id)
 );
