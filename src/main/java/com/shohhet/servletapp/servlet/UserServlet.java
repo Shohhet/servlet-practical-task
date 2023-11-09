@@ -84,7 +84,7 @@ public class UserServlet extends HttpServlet {
         if (Pattern.matches("^\\d+$", path) && isInteger(path)) {
             var userId = Integer.parseInt(path);
             var userNameDto = gson.fromJson(req.getReader(), UserNameDto.class);
-            userService.update(new UserDto(userId, userNameDto.name(), List.of()))
+            userService.update(new UserDto(userId, userNameDto.name()))
                     .ifPresentOrElse(
                             userDto -> {
                                 resp.setStatus(HttpServletResponse.SC_OK);

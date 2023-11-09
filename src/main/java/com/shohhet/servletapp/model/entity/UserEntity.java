@@ -19,5 +19,5 @@ public class UserEntity {
     @Column(name = "name")
     private String name;
     @OneToMany(mappedBy = "user", fetch = FetchType.LAZY, cascade = CascadeType.REMOVE)
-    private transient List<EventEntity> events;
+    private List<EventEntity> events;
 }

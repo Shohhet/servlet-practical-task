@@ -24,10 +24,10 @@ import org.hibernate.boot.model.naming.CamelCaseToUnderscoresNamingStrategy;
 import org.hibernate.cfg.Configuration;
 
 import java.lang.reflect.Proxy;
+
 @WebListener()
 public class ContextListener implements ServletContextListener {
     private SessionFactory sessionFactory;
-
 
 
     @SneakyThrows
@@ -51,9 +51,12 @@ public class ContextListener implements ServletContextListener {
         var eventRepository = new EventRepositoryImpl(currentSession, EventEntity.class);
 
 
-        var eventToDtoMapper = new EventToDtoMapper();
-        var userToDtoMapper = new UserToDtoMapper(eventToDtoMapper);
+        var userToDtoMapper = new UserToDtoMapper();
+        var fileToDtoMapper = new FileToDtoMapper();
+        var eventToDtoMapper = new EventToDtoMapper(userToDtoMapper, fileToDtoMapper);
         var dtoToUserMapper = new DtoToUserMapper();
+        var dtoToFileMapper = new UploadDtoToFileMapper();
+
         var userService = new ByteBuddy()
                 .subclass(UserService.class)
                 .method(ElementMatchers.any())
@@ -65,8 +68,6 @@ public class ContextListener implements ServletContextListener {
                 .newInstance(userRepository, userToDtoMapper, dtoToUserMapper);
 
 
-        var fileToDtoMapper = new FileToDtoMapper();
-        var dtoToFileMapper = new UploadDtoToFileMapper();
         var fileService = new ByteBuddy()
                 .subclass(FileService.class)
                 .method(ElementMatchers.any())
@@ -77,8 +78,19 @@ public class ContextListener implements ServletContextListener {
                 .getDeclaredConstructor(FileRepositoryImpl.class, UserRepositoryImpl.class, EventRepositoryImpl.class, FileToDtoMapper.class, UploadDtoToFileMapper.class)
                 .newInstance(fileRepository, userRepository, eventRepository, fileToDtoMapper, dtoToFileMapper);
 
+        var eventService = new ByteBuddy()
+                .subclass(EventService.class)
+                .method(ElementMatchers.any())
+                .intercept(MethodDelegation.to(transactionInterceptor))
+                .make()
+                .load(ContextListener.class.getClassLoader())
+                .getLoaded()
+                .getDeclaredConstructor(EventRepositoryImpl.class, EventToDtoMapper.class)
+                .newInstance(eventRepository, eventToDtoMapper);
+
         servletContext.setAttribute(UserService.class.getSimpleName(), userService);
         servletContext.setAttribute(FileService.class.getSimpleName(), fileService);
+        servletContext.setAttribute(EventService.class.getSimpleName(), eventService);
     }
 
     @Override
