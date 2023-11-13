@@ -1,0 +1,228 @@
+openapi: 3.0.3
+info:
+  title: File server API
+  description: File server API
+  version: 1.0.0
+servers:
+  - url: 'http://localhost:8080/api'
+    description: Local server for tests.
+paths:
+  /users:
+    post:
+      summary: Create new user.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AddUserDto"
+      responses:
+        201:
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GetUserDto"
+        404:
+          description: User already exist
+          content:
+            text/plain:
+              schema:
+                type: string
+    get:
+      summary: Get all users.
+      responses:
+        200:
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/GetUserDto"
+  /users/{userId}:
+    get:
+      summary: Get user by ID.
+      parameters:
+        - name: userId
+          in: path
+          schema:
+            type: string
+          required: true
+      responses:
+        200:
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GetUserDto"
+        404:
+          description: Not found
+          content:
+            text/plain:
+              schema:
+                title: User not found.
+                type: string
+
+    put:
+      summary: Update user credentials.
+      parameters:
+        - name: userId
+          in: path
+          schema:
+            type: string
+          required: true
+      requestBody:
+        $ref: "#/components/schemas/AddUserDto"
+        required: true
+      responses:
+        200:
+          description: OK
+        404:
+          description: Not found
+          content:
+            text/plain:
+              schema:
+                title: User not found.
+                type: string
+    delete:
+      summary: Delete user.
+      parameters:
+        - name: userId
+          in: path
+          schema:
+            type: string
+          required: true
+      responses:
+        200:
+          description: OK
+        404:
+          description: Not found
+          content:
+            text/plain:
+              schema:
+                title: User not found.
+                type: string
+  /files:
+    post:
+      summary: Upload new file
+      parameters:
+        - name: userId
+          in: header
+          schema:
+            type: string
+          required: true
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                filename:
+                  type: string
+                  format: binary
+
+      responses:
+        201:
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/FileDto"
+        400:
+          description: File already exist
+          content:
+            text/plain:
+              schema:
+                type: string
+    get:
+      summary: Get all files.
+      responses:
+        200:
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/FileDto"
+  /files/{fileId}:
+    get:
+      summary: Get file by ID.
+      parameters:
+        - name: fileId
+          in: path
+          schema:
+            type: string
+          required: true
+      responses:
+        200:
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/FileDto"
+        404:
+          description: Not found.
+          content:
+            text/plain:
+              schema:
+                type: string
+  /files/{fileId}/download:
+    get:
+      summary: Download file by ID.
+      parameters:
+        - name: fileId
+          in: path
+          schema:
+            type: string
+          required: true
+      responses:
+        200:
+          description: OK
+          content:
+            application/octet-stream:
+              schema:
+                type: string
+                format: binary
+        404:
+          description: Not found.
+          content:
+            text/plain:
+              schema:
+                type: string
+
+
+
+
+
+
+
+
+
+components:
+  schemas:
+    GetUserDto:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+    AddUserDto:
+      type: object
+      properties:
+        name:
+          type: string
+    FileDto:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        path:
+          type: string
+
+
+
+  

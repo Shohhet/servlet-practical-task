@@ -15,15 +15,16 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.Part;
 
-import java.io.File;
-import java.io.IOException;
-import java.io.PrintWriter;
+import java.io.*;
+import java.util.Arrays;
 import java.util.List;
+import java.util.regex.Pattern;
 
 import static com.shohhet.servletapp.utils.ServletUtils.isInteger;
 
 @WebServlet(urlPatterns = "/api/files/*")
-@MultipartConfig(maxFileSize = 1024 * 1024 * 10,
+@MultipartConfig(
+        maxFileSize = 1024 * 1024 * 10,
         maxRequestSize = 1024 * 1024 * 100)
 public class FileServlet extends HttpServlet {
     private FileService fileService;
@@ -41,26 +42,63 @@ public class FileServlet extends HttpServlet {
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws IOException {
         String path = req.getPathInfo();
+        path = path == null || path.isEmpty() ? "" : path.substring(1);
         var writer = resp.getWriter();
-        if (path != null && !path.isEmpty() && !path.isBlank()) {
-            path = path.substring(1);
-            if (path.isEmpty()) {
-                var fileDtos = fileService.getAll();
-                resp.setStatus(200);
-                resp.setContentType("application/json; charset=UTF-8");
-                writer.write(gson.toJson(fileDtos, new TypeToken<List<FileDto>>() {
-                }.getType()));
-            } else if (isInteger(path)) {
-                int id = Integer.parseInt(path);
-                fileService.getById(id).ifPresentOrElse(
-                        fileDto -> {
-                            resp.setStatus(200);
-                            resp.setContentType("application/json; charset=UTF-8");
-                            writer.write(gson.toJson(fileDto));
-                        },
-                        () -> resp.setStatus(404)
-                );
+        if (path.isEmpty()) {
+            var fileDtos = fileService.getAll();
+            resp.setStatus(HttpServletResponse.SC_OK);
+            resp.setContentType("application/json; charset=UTF-8");
+            writer.write(gson.toJson(fileDtos, new TypeToken<List<FileDto>>() {
+            }.getType()));
+        } else if (Pattern.matches("^\\d+$", path) && isInteger(path)) {
+            int id = Integer.parseInt(path);
+            fileService.getById(id).ifPresentOrElse(
+                    fileDto -> {
+                        resp.setStatus(HttpServletResponse.SC_OK);
+                        resp.setContentType("application/json; charset=UTF-8");
+                        writer.write(gson.toJson(fileDto));
+                    },
+                    () -> {
+                        resp.setStatus(HttpServletResponse.SC_NOT_FOUND);
+                        writer.write("File not found.");
+                    }
+            );
+        } else if (Pattern.matches("^\\d+/download$", path)) {
+            String stringId = Arrays.stream(path.split("/")).findFirst().orElse("");
+            if (isInteger(stringId)) {
+                Integer id = Integer.parseInt(stringId);
+                var maybeFile = fileService.getById(id);
+                if (maybeFile.isPresent()) {
+                    String fullPath = maybeFile.get().path() + File.separator + maybeFile.get().name();
+                    File downloadFile = new File(fullPath);
+                    resp.reset();
+                    try (var inputStream = new FileInputStream(downloadFile);
+                         var outputStream = resp.getOutputStream()) {
+                        var context = getServletContext();
+                        String mimeType = context.getMimeType(fullPath);
+                        if (mimeType == null) {
+                            mimeType = "application/octet-stream";
+                        }
+                        resp.setContentType(mimeType);
+                        resp.setContentLength((int) downloadFile.length());
+                        resp.setHeader(
+                                "Content-Disposition",
+                                String.format("attachment; filename=\"%s\"", downloadFile.getName())
+                        );
+                        byte[] buffer = new byte[4 * 1024];
+                        int bytesRead;
+                        while ((bytesRead = inputStream.read(buffer)) != -1) {
+                            outputStream.write(buffer, 0, bytesRead);
+                        }
+                    }
+                } else {
+                    resp.setStatus(HttpServletResponse.SC_NOT_FOUND);
+                    writer.write("File not found.");
+                }
             }
+        } else {
+            resp.setStatus(HttpServletResponse.SC_NOT_FOUND);
+            writer.write("Resource not found");
         }
     }
 
@@ -86,7 +124,7 @@ public class FileServlet extends HttpServlet {
                         writer.write(gson.toJson(fileDto));
                     },
                     () -> {
-                        resp.setStatus(HttpServletResponse.SC_NOT_FOUND);
+                        resp.setStatus(HttpServletResponse.SC_BAD_REQUEST);
                         writer.write("File already exist.");
                     }
             );
@@ -94,21 +132,5 @@ public class FileServlet extends HttpServlet {
             resp.setStatus(HttpServletResponse.SC_NOT_FOUND);
             writer.write("User id header missed or have wrong value");
         }
-
-
-
     }
-
-    private String getFileName(Part part) {
-        String contentDisposition = part.getHeader("content-disposition");
-        String[] tokens = contentDisposition.split(";");
-        for (String token : tokens) {
-            if (token.trim().startsWith("filename")) {
-                return token.substring(token.indexOf("=") + 2, token.length() - 1);
-            }
-        }
-        return "";
-    }
-
-
 }

@@ -17,7 +17,7 @@ import jakarta.servlet.annotation.*;
 
 import static com.shohhet.servletapp.utils.ServletUtils.isInteger;
 
-@WebServlet(urlPatterns = "/api/users/*")
+@WebServlet(urlPatterns = {"/api/users/*", "/api/users"})
 public class UserServlet extends HttpServlet {
     private UserService userService;
     private Gson gson;
@@ -31,7 +31,8 @@ public class UserServlet extends HttpServlet {
 
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-        String path = req.getPathInfo().substring(1);
+        String path = req.getPathInfo();
+        path = path == null || path.isEmpty() ? "" : path.substring(1);
         var writer = resp.getWriter();
         if (path.isEmpty()) {
             var userDtos = userService.getAll();
@@ -42,30 +43,33 @@ public class UserServlet extends HttpServlet {
         } else if (Pattern.matches("^\\d+$", path) && isInteger(path)) {
             int id = Integer.parseInt(path);
             userService.getById(id).ifPresentOrElse(
-                    fileDto -> {
+                    userDto -> {
                         resp.setStatus(HttpServletResponse.SC_OK);
                         resp.setContentType("application/json; charset=UTF-8");
-                        writer.write(gson.toJson(fileDto));
+                        writer.write(gson.toJson(userDto));
                     },
                     () -> {
                         resp.setStatus(HttpServletResponse.SC_NOT_FOUND);
+                        resp.setContentType("text/plain; charset=UTF-8");
                         writer.write("User not found.");
                     }
             );
         } else {
             resp.setStatus(HttpServletResponse.SC_NOT_FOUND);
+            resp.setContentType("text/plain; charset=UTF-8");
             writer.write("Resource not found");
         }
     }
 
     public void doPost(HttpServletRequest req, HttpServletResponse resp) throws IOException {
-        String path = req.getPathInfo().substring(1);
+        String path = req.getPathInfo();
+        path = path == null || path.isEmpty() ? "" : path.substring(1);
         var writer = resp.getWriter();
         if (path.isEmpty()) {
             var userNameDto = gson.fromJson(req.getReader(), UserNameDto.class);
             userService.add(userNameDto).ifPresentOrElse(
                     userDto -> {
-                        resp.setStatus(HttpServletResponse.SC_OK);
+                        resp.setStatus(HttpServletResponse.SC_CREATED);
                         resp.setContentType("application/json; charset=UTF-8");
                         writer.write(gson.toJson(userDto));
                     },

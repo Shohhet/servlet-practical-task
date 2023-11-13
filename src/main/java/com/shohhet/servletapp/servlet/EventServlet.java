@@ -36,7 +36,8 @@ public class EventServlet extends HttpServlet {
 
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-        String path = req.getPathInfo().substring(1);
+        String path = req.getPathInfo();
+        path = path == null || path.isEmpty() ? "" : path.substring(1);
         var writer = resp.getWriter();
         if (path.isEmpty()) {
             var eventDtos = eventService.getAll();
