@@ -1,8 +1,8 @@
 package com.shohhet.servletapp.service;
 
-import com.shohhet.servletapp.model.repository.impl.EventRepositoryImpl;
-import com.shohhet.servletapp.service.dto.eventDto.EventDto;
-import com.shohhet.servletapp.service.mapper.EventToDtoMapper;
+import com.shohhet.servletapp.repository.impl.EventRepositoryImpl;
+import com.shohhet.servletapp.dto.GetEventRequestDto;
+import com.shohhet.servletapp.mapper.EventToDtoMapper;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 
@@ -15,12 +15,12 @@ public class EventService {
     private final EventToDtoMapper eventToDtoMapper;
 
     @Transactional
-    public Optional<EventDto> getById(Integer id) {
+    public Optional<GetEventRequestDto> getById(Integer id) {
         return eventRepository.getById(id).map(eventToDtoMapper::mapFrom);
     }
 
     @Transactional
-    public List<EventDto> getAll() {
+    public List<GetEventRequestDto> getAll() {
         return eventRepository.getAll().stream()
                 .map(eventToDtoMapper::mapFrom)
                 .toList();

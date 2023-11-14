@@ -72,8 +72,9 @@ paths:
             type: string
           required: true
       requestBody:
-        $ref: "#/components/schemas/AddUserDto"
         required: true
+        $ref: "#/components/schemas/AddUserDto"
+
       responses:
         200:
           description: OK
@@ -190,15 +191,35 @@ paths:
             text/plain:
               schema:
                 type: string
-
-
-
-
-
-
-
-
-
+  /events:
+    get:
+      summary: Get all events.
+      responses:
+        200:
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/EventDto"
+  /events/{eventId}:
+    get:
+      summary: Get event by ID.
+      responses:
+        200:
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/EventDto"
+        404:
+          description: Not found
+          content:
+            text/plain:
+              schema:
+                title: User not found.
+                type: string
 components:
   schemas:
     GetUserDto:
@@ -222,6 +243,16 @@ components:
           type: string
         path:
           type: string
+    EventDto:
+      type: object
+      properties:
+        id:
+          type: integer
+        user:
+          $ref: "#/components/schemas/GetUserDto"
+        file:
+          $ref: "#/components/schemas/FileDto"
+
 
 
 

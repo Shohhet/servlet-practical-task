@@ -1,14 +1,13 @@
 package com.shohhet.servletapp.service;
 
-import com.shohhet.servletapp.model.entity.EventEntity;
-import com.shohhet.servletapp.model.entity.UserEntity;
-import com.shohhet.servletapp.model.repository.impl.EventRepositoryImpl;
-import com.shohhet.servletapp.model.repository.impl.FileRepositoryImpl;
-import com.shohhet.servletapp.model.repository.impl.UserRepositoryImpl;
-import com.shohhet.servletapp.service.dto.fileDto.FileDto;
-import com.shohhet.servletapp.service.dto.fileDto.UploadFileDto;
-import com.shohhet.servletapp.service.mapper.UploadDtoToFileMapper;
-import com.shohhet.servletapp.service.mapper.FileToDtoMapper;
+import com.shohhet.servletapp.entity.EventEntity;
+import com.shohhet.servletapp.repository.impl.EventRepositoryImpl;
+import com.shohhet.servletapp.repository.impl.FileRepositoryImpl;
+import com.shohhet.servletapp.repository.impl.UserRepositoryImpl;
+import com.shohhet.servletapp.dto.GetFileRequestDto;
+import com.shohhet.servletapp.dto.UploadFileRequestDto;
+import com.shohhet.servletapp.mapper.UploadDtoToFileMapper;
+import com.shohhet.servletapp.mapper.FileToDtoMapper;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 
@@ -29,7 +28,7 @@ public class FileService {
     private final UploadDtoToFileMapper dtoToFileMapper;
 
     @Transactional
-    public Optional<FileDto> add(UploadFileDto uploadFileDto) throws IOException {
+    public Optional<GetFileRequestDto> add(UploadFileRequestDto uploadFileDto) throws IOException {
         var maybeUser = userRepository.getById(uploadFileDto.userId());
         if (maybeUser.isPresent()) {
             var maybeFile = fileRepository.getAll().stream()
@@ -55,19 +54,19 @@ public class FileService {
     }
 
     @Transactional
-    public Optional<FileDto> getById(Integer id) {
+    public Optional<GetFileRequestDto> getById(Integer id) {
         return fileRepository.getById(id)
                 .map(fileToDtoMapper::mapFrom);
     }
 
     @Transactional
-    public List<FileDto> getAll() {
+    public List<GetFileRequestDto> getAll() {
         return fileRepository.getAll().stream()
                 .map(fileToDtoMapper::mapFrom)
                 .toList();
     }
 
-    private void upload(UploadFileDto fileDto) throws IOException {
+    private void upload(UploadFileRequestDto fileDto) throws IOException {
         var fullPath = Path.of(fileDto.path() + File.separator + fileDto.name());
         try(var is = fileDto.fileInputStream()) {
             Files.createDirectories(fullPath.getParent());

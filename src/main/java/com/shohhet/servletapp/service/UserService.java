@@ -1,13 +1,10 @@
 package com.shohhet.servletapp.service;
 
-import com.shohhet.servletapp.model.entity.UserEntity;
-import com.shohhet.servletapp.model.repository.impl.UserRepositoryImpl;
-import com.shohhet.servletapp.service.dto.UpdateUserDto;
-import com.shohhet.servletapp.service.dto.userDto.UserNameDto;
-import com.shohhet.servletapp.service.dto.userDto.UserDto;
-import com.shohhet.servletapp.service.mapper.DtoToUserMapper;
-import com.shohhet.servletapp.service.mapper.UserToDtoMapper;
-import jakarta.persistence.criteria.CriteriaBuilder;
+import com.shohhet.servletapp.repository.impl.UserRepositoryImpl;
+import com.shohhet.servletapp.dto.CreateUserRequestDto;
+import com.shohhet.servletapp.dto.GetAndUpdateUserRequestDto;
+import com.shohhet.servletapp.mapper.DtoToUserMapper;
+import com.shohhet.servletapp.mapper.UserToDtoMapper;
 import jakarta.transaction.Transactional;
 import lombok.AllArgsConstructor;
 
@@ -21,7 +18,7 @@ public class UserService {
     private final DtoToUserMapper dtoToUserMapper;
 
     @Transactional
-    public Optional<UserDto> getById(Integer id) {
+    public Optional<GetAndUpdateUserRequestDto> getById(Integer id) {
         return userRepository
                 .getById(id)
                 .stream()
@@ -30,14 +27,14 @@ public class UserService {
     }
 
     @Transactional
-    public List<UserDto> getAll() {
+    public List<GetAndUpdateUserRequestDto> getAll() {
         return userRepository.getAll().stream()
                 .map(userToDtoMapper::mapFrom)
                 .toList();
     }
 
     @Transactional
-    public Optional<UserDto> add(UserNameDto userDto) {
+    public Optional<GetAndUpdateUserRequestDto> add(CreateUserRequestDto userDto) {
         var maybeUser = userRepository.getAll().stream()
                 .filter(entity -> entity.getName().equals(userDto.name()))
                 .findFirst();
@@ -49,11 +46,11 @@ public class UserService {
     }
 
     @Transactional
-    public Optional<UserDto> update(UserDto userDto) {
-        var maybeUser = userRepository.getById(userDto.id());
+    public Optional<GetAndUpdateUserRequestDto> update(GetAndUpdateUserRequestDto getAndUpdateUserRequestDto) {
+        var maybeUser = userRepository.getById(getAndUpdateUserRequestDto.id());
         if (maybeUser.isPresent()) {
             var user = maybeUser.get();
-            user.setName(userDto.name());
+            user.setName(getAndUpdateUserRequestDto.name());
             userRepository.update(user);
             return Optional.of(userToDtoMapper.mapFrom(user));
         }
